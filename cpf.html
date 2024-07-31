@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <title>Consulta por CPF</title>
@@ -67,7 +66,7 @@
             white-space: pre-wrap;
             font-size: 16px;
             overflow: auto;
-            max-height: 300px;
+            max-height: 600px;
             position: relative;
         }
 
@@ -167,7 +166,6 @@
         }
     </style>
 </head>
-
 <body>
     <button class="home-button" onclick="voltarHome()"></button>
     <h1>Consulta por CPF</h1>
@@ -215,28 +213,46 @@
             }
 
             const item = data[0];
-            const addresses = item.addresses.map(addr => `
+            const addresses = item.addresses ? item.addresses.map(addr => `
                 <div>
                     <strong>Endereço:</strong><br>
                     ${addr.logr_name} ${addr.logr_number}, ${addr.logr_complement}<br>
                     ${addr.neighborhood}, ${addr.city} - ${addr.state}<br>
                     CEP: ${addr.zip_code}
                 </div>
-            `).join('<hr>');
+            `).join('<hr>') : 'N/A';
 
-            const telephones = item.telephones.map(tel => `
+            const telephones = item.telephones ? item.telephones.map(tel => `
                 <div>
                     <strong>Telefone:</strong><br>
                     (${tel.ddd}) ${tel.phone_number}<br>
                 </div>
-            `).join('<hr>');
+            `).join('<hr>') : 'N/A';
 
-            const emails = item.emails.map(email => `
+            const emails = item.emails ? item.emails.map(email => `
                 <div>
                     <strong>Email:</strong><br>
                     ${email.email}<br>
                 </div>
-            `).join('<hr>');
+            `).join('<hr>') : 'N/A';
+
+            const purchasingPower = item.purchasing_power ? `
+                <div>
+                    <strong>Potencial de Compra:</strong><br>
+                    Código: ${item.purchasing_power.power_code}<br>
+                    Descrição: ${item.purchasing_power.purchasing_power}<br>
+                    Faixa de Renda: ${item.purchasing_power.fx_purchasing_power}<br>
+                    Renda: ${item.purchasing_power.income_purchasing_power}
+                </div>
+            ` : 'N/A';
+
+            const score = item.score ? `
+                <div>
+                    <strong>Score:</strong><br>
+                    CSB8: ${item.score.csb8} (${item.score.csb8_range})<br>
+                    CSBA: ${item.score.csba} (${item.score.csba_range})
+                </div>
+            ` : 'N/A';
 
             document.getElementById('resultadoCpf').innerHTML = `
                 <div>
@@ -247,15 +263,20 @@
                     <strong>Idade:</strong> ${item.age || 'N/A'}<br>
                     <strong>Signo:</strong> ${item.sign || 'N/A'}<br>
                     <strong>Nome da Mãe:</strong> ${item.mother_name || 'N/A'}<br>
+                    <strong>Nome do Pai:</strong> ${item.father_name || 'N/A'}<br>
+                    <strong>Registro:</strong> ${item.registration_id || 'N/A'}<br>
                     <strong>Estado Civil:</strong> ${item.marital_status || 'N/A'}<br>
+                    <strong>RG:</strong> ${item.rg || 'N/A'}<br>
+                    <strong>Nacionalidade:</strong> ${item.nationality || 'N/A'}<br>
+                    <strong>Data de Cadastro:</strong> ${item.dt_sit_cad || 'N/A'}<br>
                     <strong>Renda:</strong> ${item.income || 'N/A'}<br>
-                    <strong>Endereços:</strong><br>
-                    ${addresses}<br>
-                    <strong>Telefones:</strong><br>
-                    ${telephones}<br>
-                    <strong>Emails:</strong><br>
-                    ${emails}
+                    <strong>Mosaico:</strong> ${item.cd_mosaic_new || 'N/A'}<br>
+                    <strong>Potencial de Compra:</strong> ${purchasingPower}<br>
+                    <strong>Score:</strong> ${score}<br>
                     <hr>
+                    ${addresses}
+                    ${telephones}
+                    ${emails}
                 </div>
             `;
         }
@@ -291,9 +312,8 @@
         }
 
         function voltarHome() {
-            window.location.href = 'consultas.html'; // Ajuste para a URL da sua página inicial
+            window.location.href = 'consultas.html';
         }
     </script>
 </body>
-
 </html>
