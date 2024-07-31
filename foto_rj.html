@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta Foto por CPF</title>
+    <style>
+        body {
+            background: url('https://i.pinimg.com/originals/56/e9/36/56e9367fa1d4ec7a49a23cbe9f979c0c.gif') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            margin-top: 50px;
+        }
+
+        #formFoto {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 30px;
+        }
+
+        label {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        #cpfInput {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #444;
+            color: white;
+        }
+
+        input[type="button"] {
+            background-color: black;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="button"]:hover {
+            background-color: #cc0000;
+        }
+
+        #resultadoFoto {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+            white-space: pre-wrap;
+            font-size: 16px;
+            overflow: auto;
+            max-height: 300px;
+            position: relative;
+        }
+
+        .toolbox {
+            display: none;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            width: calc(100% - 40px);
+            max-height: 300px;
+            overflow-y: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .toolbox.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .toolbox input[type="text"] {
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .toolbox button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .toolbox button:hover {
+            background-color: #cc0000;
+        }
+
+        .filter-button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: relative;
+            z-index: 11;
+        }
+
+        .filter-button:hover {
+            background-color: #cc0000;
+        }
+
+        .copy-button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 11;
+        }
+
+        .copy-button:hover {
+            background-color: #cc0000;
+        }
+
+        #fotoContainer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #fotoContainer img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3xZgoF9Dfsg2PeUkrLHOjSY6P2VjQW8VkvQ&s') no-repeat center center;
+            background-size: contain;
+            width: 50px;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 8px white;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="home-button" onclick="voltarHome()"></button>
+    <h1>Consulta Foto por CPF</h1>
+    <form id="formFoto">
+        <label for="cpfInput">Digite o CPF (apenas números):</label>
+        <input type="text" id="cpfInput" placeholder="Ex: 12345678901">
+        <input type="button" value="Consultar" onclick="consultarFoto()">
+        <input type="button" value="Filtrar" class="filter-button" onclick="toggleToolbox()">
+    </form>
+    <div id="resultadoFoto">
+        <div id="fotoContainer"></div>
+    </div>
+    <div id="toolbox" class="toolbox">
+        <button onclick="closeToolbox()">X</button>
+        <label for="filterName">Nome:</label>
+        <input type="text" id="filterName" oninput="filterResults()" placeholder="Filtrar por nome">
+    </div>
+    <button class="copy-button" onclick="copyResults()">Copiar Resultado</button>
+
+    <script>
+        let globalData = [];
+
+        function consultarFoto() {
+            const cpf = document.getElementById('cpfInput').value;
+            const apiKey = 'ab682c9f720ed1c86ccebc57c1ffecc9426fec18986e0a6a5d6e17eee6401974';
+            const url = `https://api-dh.ciphers.systems/api/v1/rj/cpf/?cpf=${cpf}&apikey=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.body) {
+                        globalData = [data.body]; // Envolvendo em um array para uniformidade
+                        displayResults(globalData);
+                    } else {
+                        document.getElementById('resultadoFoto').textContent = 'Nenhum resultado encontrado.';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('resultadoFoto').textContent = 'Erro ao consultar CPF. Por favor, tente novamente.';
+                });
+        }
+
+        function displayResults(data) {
+            const fotoContainer = document.getElementById('fotoContainer');
+            fotoContainer.innerHTML = '';
+
+            data.forEach(item => {
+                const imageBase64 = item.photo || '';
+                const imageSrc = `data:image/jpeg;base64,${imageBase64}`;
+                fotoContainer.innerHTML += `
+                    <div class="result-item">
+                        <img src="${imageSrc}" alt="Foto de ${item.name || 'N/A'}">
+                        <p><strong>Nome:</strong> ${item.name || 'N/A'}</p>
+                        <p><strong>CPF:</strong> ${item.cpf || 'N/A'}</p>
+                        <p><strong>Data de Nascimento:</strong> ${item.date_of_birth || 'N/A'}</p>
+                        <p><strong>Nome da Mãe:</strong> ${item.mother_name || 'N/A'}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function filterResults() {
+            const filterName = document.getElementById('filterName').value.toLowerCase();
+
+            const filteredData = globalData.filter(item => 
+                !filterName || (item.name && item.name.toLowerCase().includes(filterName))
+            );
+
+            displayResults(filteredData);
+        }
+
+        function toggleToolbox() {
+            const toolbox = document.getElementById('toolbox');
+            toolbox.classList.toggle('open');
+        }
+
+        function closeToolbox() {
+            document.getElementById('toolbox').classList.remove('open');
+        }
+
+        function copyResults() {
+            const resultsText = document.getElementById('resultadoFoto').innerText;
+            navigator.clipboard.writeText(resultsText)
+                .then(() => alert('Resultados copiados para a área de transferência!'))
+                .catch(err => console.error('Erro ao copiar resultados: ', err));
+        }
+
+        function voltarHome() {
+            window.location.href = 'consultas.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta Telefone</title>
+    <style>
+        body {
+            background: url('https://i.pinimg.com/originals/56/e9/36/56e9367fa1d4ec7a49a23cbe9f979c0c.gif') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Evita rolagem horizontal */
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            margin-top: 50px;
+            text-shadow: 2px 2px 5px #000;
+        }
+
+        #formTelefone {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 30px;
+        }
+
+        label {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        #telefoneInput {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #444;
+            color: white;
+        }
+
+        input[type="button"] {
+            background-color: black;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="button"]:hover {
+            background-color: #cc0000;
+        }
+
+        #resultadoTelefone {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+            white-space: pre-wrap;
+            font-size: 16px;
+            overflow: auto;
+            max-height: 300px;
+            position: relative;
+        }
+
+        .toolbox {
+            display: none;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            width: calc(100% - 40px);
+            max-height: 300px;
+            overflow-y: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            position: relative;
+            margin-top: 20px; /* Ajusta o espaço acima da toolbox */
+        }
+
+        .toolbox.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .toolbox input[type="text"] {
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .toolbox button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .toolbox button:hover {
+            background-color: #cc0000;
+        }
+
+        .filter-button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: relative;
+            z-index: 11;
+        }
+
+        .filter-button:hover {
+            background-color: #cc0000;
+        }
+
+        .copy-button {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 11;
+        }
+
+        .copy-button:hover {
+            background-color: #cc0000;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3xZgoF9Dfsg2PeUkrLHOjSY6P2VjQW8VkvQ&s') no-repeat center center;
+            background-size: contain;
+            width: 50px;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 8px white;
+        }
+    </style>
+</head>
+<body>
+    <button class="home-button" onclick="voltarHome()"></button>
+    <h1>Consulta Telefone</h1>
+    <form id="formTelefone">
+        <label for="telefoneInput">Digite o telefone (formato DDD e número):</label>
+        <input type="text" id="telefoneInput" placeholder="Ex: DDD+TELEFONE">
+        <input type="button" value="Consultar" onclick="consultarTelefone()">
+        <input type="button" value="Filtrar" class="filter-button" onclick="toggleToolbox()">
+    </form>
+    <div id="resultadoTelefone"></div>
+    <div id="toolbox" class="toolbox">
+        <button onclick="closeToolbox()">X</button>
+        <label for="filterName">Filtrar por Nome:</label>
+        <input type="text" id="filterName" placeholder="Nome" oninput="applyFilter()">
+        <label for="filterCpf">Filtrar por CPF:</label>
+        <input type="text" id="filterCpf" placeholder="CPF" oninput="applyFilter()">
+    </div>
+    <button class="copy-button" onclick="copyResult()">Copiar Resultado</button>
+
+    <script>
+        let globalData = [];
+
+        function consultarTelefone() {
+            const telefone = document.getElementById('telefoneInput').value;
+            const apiKey = 'ab682c9f720ed1c86ccebc57c1ffecc9426fec18986e0a6a5d6e17eee6401974';
+            const url = `https://api-dh.ciphers.systems/api/v1/serasa/phone/?phone=${telefone}&apikey=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    globalData = data.body;
+                    displayResults(globalData);
+                })
+                .catch(error => {
+                    document.getElementById('resultadoTelefone').textContent = 'Erro ao consultar telefone. Por favor, tente novamente.';
+                });
+        }
+
+        function displayResults(data) {
+            const results = data.map(item => `
+                <div class="result-item">
+                    <strong>Nome:</strong> ${item.name || 'Não informado'}<br>
+                    <strong>Telefone:</strong> (${item.ddd || 'N/A'}) ${item.phone_number || 'N/A'}<br>
+                    <strong>CPF:</strong> ${item.cpf || 'N/A'}<br>
+                    <strong>Idade:</strong> ${item.age || 'N/A'}<br>
+                    <strong>Data de Nascimento:</strong> ${item.birth || 'N/A'}<br>
+                    <strong>Nome da Mãe:</strong> ${item.mother_name || 'N/A'}<br>
+                    <strong>Classificação:</strong> ${item.classification || 'N/A'}
+                </div>
+            `).join('<hr>');
+            document.getElementById('resultadoTelefone').innerHTML = results;
+        }
+
+        function applyFilter() {
+            const nameFilter = document.getElementById('filterName').value.toLowerCase();
+            const cpfFilter = document.getElementById('filterCpf').value;
+
+            const filteredData = globalData.filter(item => 
+                (!nameFilter || (item.name && item.name.toLowerCase().includes(nameFilter))) &&
+                (!cpfFilter || (item.cpf && item.cpf.includes(cpfFilter)))
+            );
+
+            displayResults(filteredData);
+        }
+
+        function toggleToolbox() {
+            const toolbox = document.getElementById('toolbox');
+            toolbox.classList.toggle('open');
+        }
+
+        function closeToolbox() {
+            document.getElementById('toolbox').classList.remove('open');
+        }
+
+        function copyResult() {
+            const resultContainer = document.getElementById('resultadoTelefone');
+            navigator.clipboard.writeText(resultContainer.innerText).then(() => {
+                alert('Resultado copiado para a área de transferência!');
+            }).catch(err => {
+                alert('Falha ao copiar o resultado.');
+            });
+        }
+
+        function voltarHome() {
+            window.location.href = 'consultas.html';
+        }
+    </script>
+</body>
+</html>
